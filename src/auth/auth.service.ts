@@ -25,7 +25,7 @@ export class AuthService {
             throw new BadRequestException(MessagesHelper.AUTH_PASSWORD_OR_LOGIN_NOT_FOUND)
         }
 
-        const tokenPayload = { email: user.email, sbu: user._id };
+        const tokenPayload = { email: user.email, sub: user._id };
 
         return {
             email: user.email,
