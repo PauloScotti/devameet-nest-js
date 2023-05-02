@@ -1,7 +1,8 @@
 /* eslint-disable prettier/prettier */
-import { BadRequestException, Controller, Get, Request } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Request, Put, HttpCode, HttpStatus, Body } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserMessagesHelper } from './helpers/user.helper';
+import { UpdateUserDto } from './dtos/updateuser.dto';
 
 @Controller('user')
 export class UserController {
@@ -22,5 +23,12 @@ export class UserController {
             avatar: user.avatar,
             id: user.id,
         }
+    }
+
+    @Put()
+    @HttpCode(HttpStatus.OK)
+    async updateUser(@Request() req, @Body() dto: UpdateUserDto) {
+        const { userId } = req?.user;
+        await this.userService.updateuser(userId, dto);
     }
 }
