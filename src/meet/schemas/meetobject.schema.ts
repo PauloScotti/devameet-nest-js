@@ -1,10 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { Prop, SchemaFactory } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Meet } from "./meet.schema";
 import mongoose, { HydratedDocument } from "mongoose";
 
 export type MeetObjectDocument = HydratedDocument<MeetObject>;
 
+@Schema()
 export class MeetObject {
 
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Meet.name })

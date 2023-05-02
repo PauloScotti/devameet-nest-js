@@ -79,7 +79,6 @@ export class MeetService {
                 ...object
             }
 
-            console.log(objectPayload)
             await this.objectModel.create(objectPayload);
         }
     }
