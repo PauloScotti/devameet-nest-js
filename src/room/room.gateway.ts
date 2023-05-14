@@ -27,7 +27,20 @@ export class RoomGateway implements OnGatewayInit, OnGatewayDisconnect {
     this.logger.log('Gateway initializes');
   }
 
-  handleDisconnect(client: any) {
+  async handleDisconnect(client: any) {
+    const existingOnSocket = this.activeSockets.find(
+      socket => socket.id === client.id
+    );
+
+    if (!existingOnSocket) return;
+
+    this.activeSockets = this.activeSockets.filter(
+      socket => socket.id !== client.id
+    );
+
+    await this.service.deleteUsersPosition(client.id);
+    client.broadcast.emit(`${existingOnSocket.room}-remove-user`, { socketId: client.id });
+
     this.logger.debug(`Client: ${client.id} disconnected`);
   }
 
@@ -58,6 +71,26 @@ export class RoomGateway implements OnGatewayInit, OnGatewayDisconnect {
     }
 
     this.logger.debug(`Socket client: ${client.id} start to join romm ${link}`);
+  }
+
+  @SubscribeMessage('move')
+  async handleMovement(client: Socket, payload: UpdateUserPositionDto): Promise<void> {
+    const { link, userId, x, y, orientation } = payload;
+    this.logger.log('Socket client: ' + client.id + ' start to join room: ' + link);
+
+    const dto = {
+      link,
+      userId,
+      x,
+      y,
+      orientation
+    } as UpdateUserPositionDto;
+
+    await this.service.updateUserPosition(client.id, dto);
+    const users = await this.service.listUsersPositionByLink(link);
+    this.wss.emit(`${link}-update-user-list`, {
+      users
+    });
   }
 
   @SubscribeMessage('toggl-mute-user')
