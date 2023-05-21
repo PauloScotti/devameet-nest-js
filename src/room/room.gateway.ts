@@ -6,6 +6,7 @@ import { Server, Socket } from 'socket.io';
 import { JoinRoomDto } from './dtos/joinroom.dto';
 import { UpdateUserPositionDto } from './dtos/updateposition.dto';
 import { ToglMuteDto } from './dtos/toglMute.dto';
+import { generateXYPosition } from './helpers/createposition.helper';
 
 type ActiveSocketType = {
   room: string;
@@ -24,7 +25,7 @@ export class RoomGateway implements OnGatewayInit, OnGatewayDisconnect {
   private activeSockets: ActiveSocketType[] = [];
 
   afterInit(server: any) {
-    this.logger.log('Gateway initializes');
+    this.logger.log('Gateway initializes', server);
   }
 
   async handleDisconnect(client: any) {
@@ -58,8 +59,8 @@ export class RoomGateway implements OnGatewayInit, OnGatewayDisconnect {
       const dto = {
         link,
         userId,
-        x: 2,
-        y: 2,
+        x: generateXYPosition(),
+        y: generateXYPosition(),
         orientation: 'down'
       } as UpdateUserPositionDto
 
