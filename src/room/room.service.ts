@@ -9,6 +9,7 @@ import { UserService } from 'src/user/user.service';
 import { RoomMessgesHelper } from './helpers/roommessages.helper';
 import { UpdateUserPositionDto } from './dtos/updateposition.dto';
 import { ToglMuteDto } from './dtos/toglMute.dto';
+import { PositionClone, PositionCloneDocument } from './schemas/positionclone.schema';
 
 @Injectable()
 export class RoomService {
@@ -18,6 +19,7 @@ export class RoomService {
         @InjectModel(Meet.name) private readonly meetModel: Model<MeetDocument>,
         @InjectModel(MeetObject.name) private readonly objectModel: Model<MeetObjectDocument>,
         @InjectModel(Position.name) private readonly positionModel: Model<PositionDocument>,
+        @InjectModel(PositionClone.name) private readonly positionCloneModel: Model<PositionCloneDocument>,
         private readonly userService: UserService
     ) { }
 
@@ -71,14 +73,42 @@ export class RoomService {
         const loogedUserInRoom = usersInRoom.find(u =>
             u.user.toString() === user._id.toString() || u.clientId === clientId);
 
+        const usersWereInRoom = await this.positionCloneModel.find({ meet });
+        const loogedUserWereInRoom = usersWereInRoom.find(u =>
+            u.user.toString() === user._id.toString() || u.clientId === clientId);
+
         if (loogedUserInRoom) {
+
+            this.logger.log(`loogedUserInRoom - ${loogedUserInRoom}`);
             await this.positionModel.findByIdAndUpdate({ _id: loogedUserInRoom._id }, position);
+            await this.positionCloneModel.findByIdAndUpdate({ _id: loogedUserWereInRoom._id }, position);
+        } else if (loogedUserWereInRoom) {
+            if (usersInRoom && usersInRoom.length > 10) {
+                throw new BadRequestException(RoomMessgesHelper.ROOM_MAX_USERS)
+            };
+
+            const positionUserWereInRoom = {
+                clientId,
+                user: loogedUserWereInRoom.user,
+                meet: loogedUserWereInRoom.meet,
+                name: loogedUserWereInRoom.name,
+                avatar: loogedUserWereInRoom.avatar,
+                x: loogedUserWereInRoom.x,
+                y: loogedUserWereInRoom.y,
+                orientation: loogedUserWereInRoom.orientation,
+            }
+
+            await this.positionCloneModel.findByIdAndDelete({ _id: loogedUserWereInRoom._id }, positionUserWereInRoom);
+            await this.positionModel.create(positionUserWereInRoom);
+            await this.positionCloneModel.create(positionUserWereInRoom);
+
         } else {
             if (usersInRoom && usersInRoom.length > 10) {
                 throw new BadRequestException(RoomMessgesHelper.ROOM_MAX_USERS)
             };
 
             await this.positionModel.create(position);
+            await this.positionCloneModel.create(position);
         }
     }
 
@@ -88,6 +118,7 @@ export class RoomService {
         const meet = await this._getMeet(dto.link);
         const user = await this.userService.getUserById(dto.userId);
         await this.positionModel.updateMany({ user, meet }, { muted: dto.muted });
+        await this.positionCloneModel.updateMany({ user, meet }, { muted: dto.muted });
     }
 
     async _getMeet(link: string) {
