@@ -87,10 +87,20 @@ export class RoomService {
                 throw new BadRequestException(RoomMessgesHelper.ROOM_MAX_USERS)
             };
 
-            this.logger.log(`loogedUserWereInRoom - ${loogedUserWereInRoom}`);
+            const positionUserWereInRoom = {
+                clientId,
+                user: loogedUserWereInRoom.user,
+                meet: loogedUserWereInRoom.meet,
+                name: loogedUserWereInRoom.name,
+                avatar: loogedUserWereInRoom.avatar,
+                x: loogedUserWereInRoom.x,
+                y: loogedUserWereInRoom.y,
+                orientation: loogedUserWereInRoom.orientation,
+            }
 
-            await this.positionModel.create(position);
-            await this.positionCloneModel.findByIdAndUpdate({ _id: loogedUserInRoom._id }, position);
+            await this.positionCloneModel.findByIdAndDelete({ _id: loogedUserWereInRoom._id }, positionUserWereInRoom);
+            await this.positionModel.create(positionUserWereInRoom);
+            await this.positionCloneModel.create(positionUserWereInRoom);
 
         } else {
             if (usersInRoom && usersInRoom.length > 10) {
