@@ -9,6 +9,7 @@ import { UserService } from 'src/user/user.service';
 import { RoomMessgesHelper } from './helpers/roommessages.helper';
 import { UpdateUserPositionDto } from './dtos/updateposition.dto';
 import { ToglMuteDto } from './dtos/toglMute.dto';
+import { ToglVideoDto } from './dtos/toglVideo.dto';
 import { PositionClone, PositionCloneDocument } from './schemas/positionclone.schema';
 
 @Injectable()
@@ -119,6 +120,15 @@ export class RoomService {
         const user = await this.userService.getUserById(dto.userId);
         await this.positionModel.updateMany({ user, meet }, { muted: dto.muted });
         await this.positionCloneModel.updateMany({ user, meet }, { muted: dto.muted });
+    }
+
+    async updateUserVideo(link: string, userId: string, dto: ToglVideoDto) {
+        this.logger.debug(`updateUserVideo - ${link} - ${userId}`);
+
+        const meet = await this._getMeet(link);
+        const user = await this.userService.getUserById(userId);
+        await this.positionModel.updateMany({ user, meet }, { video: dto.video });
+        await this.positionCloneModel.updateMany({ user, meet }, { video: dto.video });
     }
 
     async _getMeet(link: string) {

@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
-
-import { IsBoolean } from "class-validator";
-import { JoinRoomDto } from "./joinroom.dto";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
+import { JoinRoomSchema } from "./joinroom.dto";
 import { RoomMessgesHelper } from "../helpers/roommessages.helper";
 
-export class ToglMuteDto extends JoinRoomDto {
+export const ToglMuteSchema = JoinRoomSchema.extend({
+    muted: z.boolean({ message: RoomMessgesHelper.MUTE_NOT_VALID }),
+});
 
-    @IsBoolean({ message: RoomMessgesHelper.MUTE_NOT_VALID })
-    muted: boolean;
-}
+export class ToglMuteDto extends createZodDto(ToglMuteSchema) { }

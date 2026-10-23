@@ -1,11 +1,13 @@
 /* eslint-disable prettier/prettier */
-import { OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { RoomService } from './room.service';
-import { Logger } from '@nestjs/common';
+import { Logger, UsePipes } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JoinRoomDto } from './dtos/joinroom.dto';
 import { UpdateUserPositionDto } from './dtos/updateposition.dto';
 import { ToglMuteDto } from './dtos/toglMute.dto';
+import { ToglVideoDto } from './dtos/toglVideo.dto';
+import { WsZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import { generateXYPosition } from './helpers/createposition.helper';
 
 type ActiveSocketType = {
@@ -101,6 +103,18 @@ export class RoomGateway implements OnGatewayInit, OnGatewayDisconnect {
     await this.service.updateUserMute(payload);
     const users = await this.service.listUsersPositionByLink(link);
     this.wss.emit(`${link}-update-user-list`, { users });
+  }
+
+  @SubscribeMessage('toggl-video-user')
+  @UsePipes(new WsZodValidationPipe())
+  async handleToglVideo(@ConnectedSocket() client: Socket, @MessageBody() payload: ToglVideoDto) {
+    const activeSocket = this.activeSockets.find(socket => socket.id === client.id);
+    if (!activeSocket) return;
+
+    const { room, userId } = activeSocket;
+    await this.service.updateUserVideo(room, userId, payload);
+    const users = await this.service.listUsersPositionByLink(room);
+    this.wss.emit(`${room}-update-user-list`, { users });
   }
 
   @SubscribeMessage('call-user')

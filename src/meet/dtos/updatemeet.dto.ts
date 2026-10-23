@@ -1,34 +1,25 @@
 /* eslint-disable prettier/prettier */
-import { IsArray, IsNotEmpty, IsNumber, IsString, Max, Min, ValidateNested } from "class-validator";
-import { CreateMeetDto } from "./createmeet.dto";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
+import { CreateMeetSchema } from "./createmeet.dto";
 import { MeetMessagesHelper } from "../helpers/meetmessages.helper";
-import { Type } from "class-transformer";
 
-export class UpdateMeetDto extends CreateMeetDto {
+const coordinate = z.number({ message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
+    .min(0, MeetMessagesHelper.UPDATE_XY_NOT_VALID)
+    .max(8, MeetMessagesHelper.UPDATE_XY_NOT_VALID);
 
-    @IsArray({ message: MeetMessagesHelper.UPDATE_OBJECT_NAME_NOT_VALID })
-    @Type(() => UpdateMeetObjectDto)
-    @ValidateNested({ each: true })
-    objects: Array<UpdateMeetObjectDto>
-}
+export const UpdateMeetObjectSchema = z.object({
+    name: z.string({ message: MeetMessagesHelper.UPDATE_OBJECT_NAME_NOT_VALID }).min(1, MeetMessagesHelper.UPDATE_OBJECT_NAME_NOT_VALID),
+    x: coordinate,
+    y: coordinate,
+    zIndex: z.number({ message: MeetMessagesHelper.UPDATE_ZINDEX_NOT_VALID }),
+    orientation: z.string({ message: MeetMessagesHelper.UPDATE_ORIENTATION_NOT_VALID }),
+});
 
-export class UpdateMeetObjectDto {
-    @IsNotEmpty({ message: MeetMessagesHelper.UPDATE_OBJECT_NAME_NOT_VALID })
-    name: string;
+export const UpdateMeetSchema = CreateMeetSchema.extend({
+    objects: z.array(UpdateMeetObjectSchema, { message: MeetMessagesHelper.UPDATE_OBJECT_NAME_NOT_VALID }),
+});
 
-    @IsNumber({}, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    @Min(0, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    @Max(8, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    x: number;
+export class UpdateMeetObjectDto extends createZodDto(UpdateMeetObjectSchema) { }
 
-    @IsNumber({}, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    @Min(0, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    @Max(8, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    y: number;
-
-    @IsNumber({}, { message: MeetMessagesHelper.UPDATE_ZINDEX_NOT_VALID })
-    zIndex: number;
-
-    @IsString({ message: MeetMessagesHelper.UPDATE_ORIENTATION_NOT_VALID })
-    orientation: string;
-}
+export class UpdateMeetDto extends createZodDto(UpdateMeetSchema) { }

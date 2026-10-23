@@ -1,12 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { MinLength, IsString } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 import { UserMessagesHelper } from '../helpers/user.helper';
 
-export class UpdateUserDto {
+export const UpdateUserSchema = z.object({
+    name: z.string({ message: UserMessagesHelper.REGISTER_NAME_NOT_VALID }).min(2, UserMessagesHelper.REGISTER_NAME_NOT_VALID),
+    avatar: z.string(),
+});
 
-    @MinLength(2, { message: UserMessagesHelper.REGISTER_NAME_NOT_VALID })
-    name: string;
-
-    @IsString()
-    avatar: string;
-}
+export class UpdateUserDto extends createZodDto(UpdateUserSchema) { }

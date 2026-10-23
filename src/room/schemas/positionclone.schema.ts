@@ -35,6 +35,9 @@ export class PositionClone {
 
     @Prop({ default: false })
     muted: boolean;
+
+    @Prop({ default: true })
+    video: boolean;
 }
 
 export const PositionCloneSchema = SchemaFactory.createForClass(PositionClone);

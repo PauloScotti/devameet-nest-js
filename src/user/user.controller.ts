@@ -3,7 +3,10 @@ import { BadRequestException, Controller, Get, Request, Put, HttpCode, HttpStatu
 import { UserService } from './user.service';
 import { UserMessagesHelper } from './helpers/user.helper';
 import { UpdateUserDto } from './dtos/updateuser.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
+@ApiBearerAuth()
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) { }

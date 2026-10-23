@@ -1,13 +1,11 @@
 /* eslint-disable prettier/prettier */
-
-import { IsNotEmpty } from "class-validator";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
 import { RoomMessgesHelper } from "../helpers/roommessages.helper";
 
-export class JoinRoomDto {
+export const JoinRoomSchema = z.object({
+    userId: z.string({ message: RoomMessgesHelper.JOIN_USER_NOT_VALID }).min(1, RoomMessgesHelper.JOIN_USER_NOT_VALID),
+    link: z.string({ message: RoomMessgesHelper.JOIN_LINK_NOT_VALID }).min(1, RoomMessgesHelper.JOIN_LINK_NOT_VALID),
+});
 
-    @IsNotEmpty({ message: RoomMessgesHelper.JOIN_USER_NOT_VALID })
-    userId: string;
-
-    @IsNotEmpty({ message: RoomMessgesHelper.JOIN_LINK_NOT_VALID })
-    link: string;
-}
+export class JoinRoomDto extends createZodDto(JoinRoomSchema) { }

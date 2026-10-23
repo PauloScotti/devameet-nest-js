@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { IsEmail, IsNotEmpty } from "class-validator";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
 import { MessagesHelper } from "../helpers/messages.helper";
 
-export class LoginDto {
-    @IsEmail({}, { message: MessagesHelper.AUTH_LOGIN_NOT_FOUND })
-    login: string;
+export const LoginSchema = z.object({
+    login: z.string({ message: MessagesHelper.AUTH_LOGIN_NOT_FOUND }).email(MessagesHelper.AUTH_LOGIN_NOT_FOUND),
+    password: z.string({ message: MessagesHelper.AUTH_PASSWORD_NOT_FOUND }).min(1, MessagesHelper.AUTH_PASSWORD_NOT_FOUND),
+});
 
-    @IsNotEmpty({ message: MessagesHelper.AUTH_PASSWORD_NOT_FOUND })
-    password: string;
-}
+export class LoginDto extends createZodDto(LoginSchema) { }

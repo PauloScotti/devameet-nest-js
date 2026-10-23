@@ -1,21 +1,17 @@
 /* eslint-disable prettier/prettier */
-
-import { IsNumber, IsString, Max, Min } from "class-validator";
-import { JoinRoomDto } from "./joinroom.dto";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
+import { JoinRoomSchema } from "./joinroom.dto";
 import { MeetMessagesHelper } from "src/meet/helpers/meetmessages.helper";
 
-export class UpdateUserPositionDto extends JoinRoomDto {
+const coordinate = z.number({ message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
+    .min(0, MeetMessagesHelper.UPDATE_XY_NOT_VALID)
+    .max(8, MeetMessagesHelper.UPDATE_XY_NOT_VALID);
 
-    @IsNumber({}, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    @Min(0, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    @Max(8, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    x: number;
+export const UpdateUserPositionSchema = JoinRoomSchema.extend({
+    x: coordinate,
+    y: coordinate,
+    orientation: z.string({ message: MeetMessagesHelper.UPDATE_ORIENTATION_NOT_VALID }),
+});
 
-    @IsNumber({}, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    @Min(0, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    @Max(8, { message: MeetMessagesHelper.UPDATE_XY_NOT_VALID })
-    y: number;
-
-    @IsString({ message: MeetMessagesHelper.UPDATE_ORIENTATION_NOT_VALID })
-    orientation: string;
-}
+export class UpdateUserPositionDto extends createZodDto(UpdateUserPositionSchema) { }

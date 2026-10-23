@@ -4,7 +4,10 @@ import { MeetService } from './meet.service';
 import { GetMeetDto } from './dtos/getmeet.dto';
 import { CreateMeetDto } from './dtos/createmeet.dto';
 import { UpdateMeetDto } from './dtos/updatemeet.dto';
+import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('meet')
+@ApiBearerAuth()
 @Controller('meet')
 export class MeetController {
     constructor(
@@ -26,6 +29,7 @@ export class MeetController {
     }
 
     @Get(':id')
+    @ApiParam({ name: 'id', type: String })
     async getMeetById(@Request() req, @Param() params) {
         const { userId } = req?.user;
         const { id } = params;
@@ -40,6 +44,7 @@ export class MeetController {
     }
 
     @Delete(':id')
+    @ApiParam({ name: 'id', type: String })
     async deleteMeet(@Request() req, @Param() params) {
         const { userId } = req?.user;
         const { id } = params;
@@ -47,6 +52,7 @@ export class MeetController {
     }
 
     @Get('objects/:id')
+    @ApiParam({ name: 'id', type: String })
     async getObjectsByMeetId(@Request() req, @Param() params) {
         const { userId } = req?.user;
         const { id } = params;
@@ -54,6 +60,7 @@ export class MeetController {
     }
 
     @Put(':id')
+    @ApiParam({ name: 'id', type: String })
     async updateMeet(@Request() req, @Param() params, @Body() dto: UpdateMeetDto) {
         const { userId } = req?.user;
         const { id } = params;
