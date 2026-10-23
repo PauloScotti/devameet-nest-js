@@ -7,4 +7,6 @@ export const RoomMessgesHelper = {
     JOIN_LINK_NOT_VALID: 'Link informado não é válido.',
     MUTE_NOT_VALID: 'Valor para mudo não é válido.',
     VIDEO_NOT_VALID: 'Valor para vídeo não é válido.',
+    SIGNALING_NOT_VALID: 'Dados de conexão inválidos.',
+    SOCKET_UNAUTHORIZED: 'Token de acesso inválido.',
 }

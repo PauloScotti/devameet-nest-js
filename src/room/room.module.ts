@@ -5,6 +5,7 @@ import { RoomController } from './room.controller';
 import { MeetModule } from 'src/meet/meet.module';
 import { UserModule } from 'src/user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
 import { Position, PositionSchema } from './schemas/position.schema';
 import { RoomGateway } from './room.gateway';
 import { PositionClone, PositionCloneSchema } from './schemas/positionclone.schema';
@@ -12,6 +13,7 @@ import { PositionClone, PositionCloneSchema } from './schemas/positionclone.sche
 @Module({
   imports: [
     MeetModule, UserModule,
+    JwtModule.register({}),
     MongooseModule.forFeature([
       { name: Position.name, schema: PositionSchema },
       { name: PositionClone.name, schema: PositionCloneSchema }

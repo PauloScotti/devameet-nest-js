@@ -7,10 +7,16 @@ import { MeetObject, MeetObjectDocument } from 'src/meet/schemas/meetobject.sche
 import { Position, PositionDocument } from './schemas/position.schema';
 import { UserService } from 'src/user/user.service';
 import { RoomMessgesHelper } from './helpers/roommessages.helper';
-import { UpdateUserPositionDto } from './dtos/updateposition.dto';
 import { ToglMuteDto } from './dtos/toglMute.dto';
+import { UpdateUserPositionDto } from './dtos/updateposition.dto';
 import { ToglVideoDto } from './dtos/toglVideo.dto';
 import { PositionClone, PositionCloneDocument } from './schemas/positionclone.schema';
+
+export type UserPosition = UpdateUserPositionDto & {
+    link: string;
+    userId: string;
+    video?: boolean;
+};
 
 @Injectable()
 export class RoomService {
@@ -51,7 +57,7 @@ export class RoomService {
         return await this.positionModel.deleteMany({ clientId });
     }
 
-    async updateUserPosition(clientId: string, dto: UpdateUserPositionDto) {
+    async updateUserPosition(clientId: string, dto: UserPosition) {
         this.logger.debug(`listUsersPositionByLink - ${dto.link}`);
 
         const meet = await this._getMeet(dto.link);
@@ -97,6 +103,7 @@ export class RoomService {
                 x: loogedUserWereInRoom.x,
                 y: loogedUserWereInRoom.y,
                 orientation: loogedUserWereInRoom.orientation,
+                video: dto.video,
             }
 
             await this.positionCloneModel.findByIdAndDelete({ _id: loogedUserWereInRoom._id }, positionUserWereInRoom);
@@ -113,11 +120,11 @@ export class RoomService {
         }
     }
 
-    async updateUserMute(dto: ToglMuteDto) {
-        this.logger.debug(`updateUserMute - ${dto.link} - ${dto.userId}`);
+    async updateUserMute(link: string, userId: string, dto: ToglMuteDto) {
+        this.logger.debug(`updateUserMute - ${link} - ${userId}`);
 
-        const meet = await this._getMeet(dto.link);
-        const user = await this.userService.getUserById(dto.userId);
+        const meet = await this._getMeet(link);
+        const user = await this.userService.getUserById(userId);
         await this.positionModel.updateMany({ user, meet }, { muted: dto.muted });
         await this.positionCloneModel.updateMany({ user, meet }, { muted: dto.muted });
     }
