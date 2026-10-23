@@ -41,7 +41,7 @@ describe('RoomGateway', () => {
   describe('authenticate', () => {
     it('aceita token válido e guarda o userId do token', () => {
       const socket = client('socket-1');
-      socket.handshake.auth.token = jwtService.sign({ sub: 'user-1' }, { secret });
+      socket.handshake.auth.token = jwtService.sign({ sub: 'user-1' }, { secret, expiresIn: '1h' });
       const next = jest.fn();
 
       gateway.authenticate(socket, next);
@@ -50,7 +50,13 @@ describe('RoomGateway', () => {
       expect(socket.data.userId).toBe('user-1');
     });
 
-    it.each([undefined, 'invalido', new JwtService({}).sign({ sub: 'user-1' }, { secret: 'outro' })])('recusa token %p', (token) => {
+    it.each([
+      ['ausente', undefined],
+      ['malformado', 'invalido'],
+      ['de outra chave', new JwtService({}).sign({ sub: 'user-1' }, { secret: 'outro', expiresIn: '1h' })],
+      ['sem expiração', new JwtService({}).sign({ sub: 'user-1' }, { secret })],
+      ['expirado', new JwtService({}).sign({ sub: 'user-1', exp: Math.floor(Date.now() / 1000) - 10 }, { secret })],
+    ])('recusa token %s', (_, token) => {
       const socket = client('socket-1');
       socket.handshake.auth.token = token;
       const next = jest.fn();

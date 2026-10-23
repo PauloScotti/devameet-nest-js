@@ -11,6 +11,7 @@ import { ToglVideoDto } from './dtos/toglVideo.dto';
 import { CallUserDto, MakeAnswerDto } from './dtos/signaling.dto';
 import { WsZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import { RoomMessgesHelper } from './helpers/roommessages.helper';
+import { hasExpiration } from 'src/auth/helpers/jwt.helper';
 import { generateXYPosition } from './helpers/createposition.helper';
 
 type ActiveSocketType = {
@@ -42,6 +43,9 @@ export class RoomGateway implements OnGatewayInit, OnGatewayDisconnect {
     try {
       const { token } = client.handshake.auth ?? {};
       const payload = this.jwtService.verify(token, { secret: process.env.USER_JWT_SECRET_KEY });
+      if (!hasExpiration(payload)) {
+        throw new Error();
+      }
       client.data.userId = payload.sub;
       next();
     } catch {

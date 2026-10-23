@@ -6,6 +6,7 @@ import { RegisterDto } from "src/user/dtos/register.dto";
 import { UserService } from "src/user/user.service";
 import { UserMessagesHelper } from "src/user/helpers/user.helper";
 import { JwtService } from '@nestjs/jwt';
+import { getJwtExpiresIn } from './helpers/jwt.helper';
 
 
 @Injectable()
@@ -30,7 +31,7 @@ export class AuthService {
         return {
             email: user.email,
             name: user.name,
-            token: this.jwtService.sign(tokenPayload, { secret: process.env.USER_JWT_SECRET_KEY })
+            token: this.jwtService.sign(tokenPayload, { secret: process.env.USER_JWT_SECRET_KEY, expiresIn: getJwtExpiresIn() })
         }
     }
 
