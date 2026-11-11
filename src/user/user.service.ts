@@ -1,44 +1,35 @@
-/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { RegisterDto } from './dtos/register.dto';
-import * as CryptoJS from 'crypto-js';
-import { UpdateUserDto } from './dtos/updateuser.dto';
+import { RegisterDto, UpdateUserDto } from './dtos/register.dto';
+import { hashPassword } from 'src/auth/password.util';
 
 @Injectable()
 export class UserService {
     constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
     async create(dto: RegisterDto): Promise<User> {
-        dto.password = CryptoJS.AES.encrypt(dto.password, process.env.USER_CYPHER_SECRET_KEY).toString();
-
-        const createdUser = new this.userModel(dto);
+        const createdUser = new this.userModel({
+            name: dto.name,
+            email: dto.email,
+            avatar: dto.avatar,
+            password: await hashPassword(dto.password),
+        });
         return createdUser.save();
     }
 
     async existsByEmail(email: string): Promise<boolean> {
-        const result = await this.userModel.findOne({ email });
-        if (result) {
-            return true;
-        }
-        return false;
+        return (await this.userModel.exists({ email })) !== null;
     }
 
-    async getUserByLoginPassword(email: string, password: string): Promise<UserDocument | null> {
-        const user = await this.userModel.findOne({ email }) as UserDocument;
+    // Único ponto que devolve a senha armazenada: uso exclusivo do login.
+    async getUserByEmail(email: string): Promise<UserDocument | null> {
+        return await this.userModel.findOne({ email });
+    }
 
-        if (user) {
-            const bytes = CryptoJS.AES.decrypt(user.password, process.env.USER_CYPHER_SECRET_KEY);
-            const savedPassword = bytes.toString(CryptoJS.enc.Utf8);
-
-            if (password == savedPassword) {
-                return user;
-            }
-        }
-
-        return null;
+    async setPassword(id: string, password: string) {
+        await this.userModel.updateOne({ _id: id }, { password: await hashPassword(password) });
     }
 
     async getUserById(id: string) {
@@ -46,6 +37,6 @@ export class UserService {
     }
 
     async updateuser(id: string, dto: UpdateUserDto) {
-        return await this.userModel.findByIdAndUpdate(id, dto);
+        return await this.userModel.findByIdAndUpdate(id, { name: dto.name, avatar: dto.avatar });
     }
 }
