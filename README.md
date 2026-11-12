@@ -1,73 +1,72 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Devameet API (NestJS)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API do Devameet, salas de reunião virtuais em que cada participante se move por uma grade 8x8 e conversa por áudio e vídeo (WebRTC). Projeto do curso da Devaria.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- HTTP: cadastro, login, usuário, reuniões e objetos da sala.
+- WebSocket (socket.io): entrada na sala, movimento, mudo e sinalização WebRTC.
 
-## Description
+## Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+NestJS 11, MongoDB (Mongoose 8), JWT (Passport), argon2, zod (nestjs-zod), Swagger e Scalar, Jest.
 
-## Installation
+## Como rodar
+
+Requisitos: Node 20+ e um MongoDB.
 
 ```bash
-$ npm install
+npm install
 ```
-
-## Running the app
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
 ```
 
-## Test
+Preencha o `.env`. `USER_JWT_SECRET_KEY` é obrigatória e precisa ter pelo menos 32 caracteres; sem ela a aplicação não sobe.
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start:dev
 ```
 
-## Support
+## Documentação
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+| Endereço | Conteúdo |
+| --- | --- |
+| `/docs` | Swagger UI |
+| `/docs-json` | Documento OpenAPI |
+| `/reference` | Referência Scalar |
 
-## Stay in touch
+As rotas ficam sob `/api`. Fora `POST /api/auth/login` e `POST /api/auth/register`, todas exigem `Authorization: Bearer <token>`.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## WebSocket
 
-## License
+| Evento recebido | Dados |
+| --- | --- |
+| `join` | `link`, `userId` |
+| `move` | `link`, `userId`, `x`, `y` (0 a 8), `orientation` |
+| `toggl-mute-user` | `link`, `userId`, `muted` |
+| `call-user` | `to`, `offer` |
+| `make-answer` | `to`, `answer` |
 
-Nest is [MIT licensed](LICENSE).
+Toda mensagem é validada. Mensagem inválida é descartada e quem enviou recebe `room-error` com o motivo.
+
+## Segurança
+
+- Senhas com argon2id. Senhas gravadas no formato antigo (AES reversível) continuam valendo e são convertidas no primeiro login.
+- Senha nova: 8 caracteres ou mais, com maiúscula, minúscula e número ou símbolo.
+- Token JWT expira em 7 dias.
+- Entrada HTTP e WebSocket validada com zod; campos desconhecidos são descartados.
+- Limitação conhecida: o WebSocket não autentica a conexão, o cliente informa o `userId`. Corrigir exige enviar o token no handshake e ajustar os front-ends.
+
+## Scripts
+
+| Comando | O que faz |
+| --- | --- |
+| `npm run start:dev` | Sobe em modo de desenvolvimento |
+| `npm run build` | Compila para `dist/` |
+| `npm run start:prod` | Roda a versão compilada |
+| `npm run typecheck` | Checagem de tipos |
+| `npm test` | Testes unitários |
+
+## Deploy
+
+O `vercel.json` publica só as rotas HTTP. Funções serverless da Vercel não mantêm conexão WebSocket, então a sala precisa de um host com processo persistente (Render, Railway, Fly.io ou VPS).

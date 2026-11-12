@@ -1,6 +1,6 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { setupOpenApi } from './docs/openapi';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -8,17 +8,9 @@ async function bootstrap() {
   });
 
   app.enableCors();
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: false,
-    }),
-  );
-
   app.setGlobalPrefix('api');
+  setupOpenApi(app);
 
-  await app.listen(process.env.SERVER_PORT);
+  await app.listen(process.env.SERVER_PORT || 3000);
 }
 bootstrap();

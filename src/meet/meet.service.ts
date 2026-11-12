@@ -4,10 +4,9 @@ import { Meet, MeetDocument } from './schemas/meet.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserService } from 'src/user/user.service';
-import { CreateMeetDto } from './dtos/createmeet.dto';
+import { CreateMeetDto, UpdateMeetDto } from './dtos/createmeet.dto';
 import { generateLink } from './helpers/linkgenerator.helper';
 import { MeetObject, MeetObjectDocument } from './schemas/meetobject.schema';
-import { UpdateMeetDto } from './dtos/updatemeet.dto';
 import { MeetMessagesHelper } from './helpers/meetmessages.helper';
 
 @Injectable()

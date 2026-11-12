@@ -1,14 +1,19 @@
-/* eslint-disable prettier/prettier */
 import { BadRequestException, Controller, Get, Request, Put, HttpCode, HttpStatus, Body } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ZodResponse } from 'nestjs-zod';
 import { UserService } from './user.service';
 import { UserMessagesHelper } from './helpers/user.helper';
-import { UpdateUserDto } from './dtos/updateuser.dto';
+import { UpdateUserDto, UserResponseDto } from './dtos/register.dto';
 
+@ApiTags('Usuário')
+@ApiBearerAuth()
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
     @Get()
+    @ApiOperation({ summary: 'Dados do usuário logado' })
+    @ZodResponse({ status: 200, type: UserResponseDto })
     async getUser(@Request() req) {
         const { userId } = req?.user;
         const user = await this.userService.getUserById(userId);
@@ -27,6 +32,7 @@ export class UserController {
 
     @Put()
     @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Atualizar nome e avatar do usuário logado' })
     async updateUser(@Request() req, @Body() dto: UpdateUserDto) {
         const { userId } = req?.user;
         await this.userService.updateuser(userId, dto);

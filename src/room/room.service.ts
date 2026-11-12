@@ -7,8 +7,7 @@ import { MeetObject, MeetObjectDocument } from 'src/meet/schemas/meetobject.sche
 import { Position, PositionDocument } from './schemas/position.schema';
 import { UserService } from 'src/user/user.service';
 import { RoomMessgesHelper } from './helpers/roommessages.helper';
-import { UpdateUserPositionDto } from './dtos/updateposition.dto';
-import { ToglMuteDto } from './dtos/toglMute.dto';
+import { ToglMuteDto, UpdateUserPositionDto } from './dtos/room.dto';
 import { PositionClone, PositionCloneDocument } from './schemas/positionclone.schema';
 
 @Injectable()

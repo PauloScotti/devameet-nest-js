@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { LoginDto } from "./dtos/login.dto";
 import { MessagesHelper } from "./helpers/messages.helper";
@@ -6,7 +5,7 @@ import { RegisterDto } from "src/user/dtos/register.dto";
 import { UserService } from "src/user/user.service";
 import { UserMessagesHelper } from "src/user/helpers/user.helper";
 import { JwtService } from '@nestjs/jwt';
-
+import { verifyPassword } from "./password.util";
 
 @Injectable()
 export class AuthService {
@@ -20,17 +19,26 @@ export class AuthService {
     async login(dto: LoginDto) {
         this.looger.debug('login - started');
 
-        const user = await this.userService.getUserByLoginPassword(dto.login, dto.password)
-        if (user == null) {
+        // Mesma resposta para e-mail inexistente e senha errada: não revela
+        // quais e-mails têm conta.
+        const user = await this.userService.getUserByEmail(dto.login);
+        const check = user
+            ? await verifyPassword(dto.password, user.password)
+            : { valid: false, needsRehash: false };
+        if (!user || !check.valid) {
             throw new BadRequestException(MessagesHelper.AUTH_PASSWORD_OR_LOGIN_NOT_FOUND)
         }
 
-        const tokenPayload = { email: user.email, sub: user._id };
+        if (check.needsRehash) {
+            await this.userService.setPassword(user._id.toString(), dto.password);
+        }
+
+        const tokenPayload = { email: user.email, sub: user._id.toString() };
 
         return {
             email: user.email,
             name: user.name,
-            token: this.jwtService.sign(tokenPayload, { secret: process.env.USER_JWT_SECRET_KEY })
+            token: this.jwtService.sign(tokenPayload)
         }
     }
 
